@@ -54,7 +54,7 @@ public class VodMetadataHelper {
         JSONObject jsonObj =
                 new JSONObject(responseEntity.getBody());
         StreamDataModel streamMetadata = new StreamDataModel();
-        if (jsonObj.getJSONArray("data") != null) {
+        if (jsonObj.getJSONArray("data").length() != 0) {
             streamMetadata = getVodMetadata(Integer.parseInt(jsonObj.getJSONArray("data")
                     .getJSONObject(0).get("id").toString()));
         }

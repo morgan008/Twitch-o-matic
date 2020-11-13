@@ -3,6 +3,7 @@ package net.streamarchive.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.streamarchive.application.twitch.handler.UserIdGetter;
 import net.streamarchive.application.twitch.handler.VodMetadataHelper;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 @Service
@@ -41,9 +44,11 @@ public class WebhookRecordService {
     @Autowired
     RecordThread recordThread;
     ObjectMapper objectMapper = new ObjectMapper();
+    volatile Set<String> notificationIds = new CopyOnWriteArraySet<>();
 
 
-    public void handleLiveNotification(String user, String notification) throws JsonProcessingException, StreamNotFoundException {
+    @SneakyThrows
+    public void handleLiveNotification(String user, String notification) throws StreamNotFoundException {
 
         long userId = userIdGetter.getUserId(user);
 
@@ -63,6 +68,10 @@ public class WebhookRecordService {
         }
         log.info("Stream is up");
         NotificationDataModel notificationModel = objectMapper.treeToValue(notificationJson.get(0), NotificationDataModel.class);
+
+        if (!notificationIds.add(notificationModel.getId())){
+            return;
+        }
 
         if (!notificationModel.getType().equals("live")) {
             log.info("Stream isn't live stream. Ignoring...");

@@ -52,8 +52,8 @@ public class TwitchWebhookApi {
     }
 
     @RequestMapping(value = "/{user}", method = RequestMethod.POST)
-    public void handleStreamNotification(@RequestBody String notification
-            , @RequestHeader("content-length") long length, @RequestHeader("X-Hub-Signature") String signature, @PathVariable("user") String user) throws InterruptedException, StreamNotFoundException, IOException {
+    public void handleStreamNotification(@RequestBody final String notification
+            , @RequestHeader("content-length") final long length, @RequestHeader("X-Hub-Signature") final String signature, @PathVariable("user") final String user) throws StreamNotFoundException {
 
         log.debug("Incoming stream up/down notification");
 
@@ -62,7 +62,7 @@ public class TwitchWebhookApi {
         if (hashHandler.compare(signature, notification)) {
             log.debug("Hash confirmed");
             //check for active subscription
-            recordCreationService.handleLiveNotification(user, notification);
+            new Thread(() -> recordCreationService.handleLiveNotification(user, notification));
 
         } else {
             log.error("Notification not accepted. Wrong hash.");
