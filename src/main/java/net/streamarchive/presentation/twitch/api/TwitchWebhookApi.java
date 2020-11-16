@@ -62,8 +62,8 @@ public class TwitchWebhookApi {
         if (hashHandler.compare(signature, notification)) {
             log.debug("Hash confirmed");
             //check for active subscription
-            new Thread(() -> recordCreationService.handleLiveNotification(user, notification));
-
+            new Thread(() -> recordCreationService.handleLiveNotification(user, notification)).start();
+            log.debug("Thread started");
         } else {
             log.error("Notification not accepted. Wrong hash.");
         }
